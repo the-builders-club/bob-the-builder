@@ -32,3 +32,6 @@ export const BUILD_TYPE_PARAM = 'buildType';
 
 /** URL search param key for AI tool filters. */
 export const AI_TOOL_PARAM = 'aiTool';
+
+/** URL search param key for tech stack tag filters. */
+export const TECH_STACK_PARAM = 'techStack';
