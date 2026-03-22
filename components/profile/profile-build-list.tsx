@@ -2,15 +2,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
-
-/** Max AI tool chips shown before collapsing into "+N" — matches build-card.tsx */
-const MAX_VISIBLE_AI_TOOLS = 3;
 import { CheckerboardPlaceholder } from '@/components/ui/checkerboard-placeholder';
 import { UpvoteIcon } from '@/components/ui/icons';
 import { AiToolChip } from '@/components/ui/tool-chip';
 import {
   BUILD_TYPE_BADGE_CLASSES,
   BUILD_TYPE_LABELS,
+  MAX_VISIBLE_AI_TOOLS,
 } from '@/lib/constants/builds';
 import { buildRoute } from '@/lib/constants/routes';
 import { cn } from '@/lib/utils';

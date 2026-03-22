@@ -8,17 +8,11 @@ import { AiToolChip } from '@/components/ui/tool-chip';
 import {
   BUILD_TYPE_BADGE_CLASSES,
   BUILD_TYPE_LABELS,
+  MAX_VISIBLE_AI_TOOLS,
 } from '@/lib/constants/builds';
 import { buildRoute } from '@/lib/constants/routes';
 import { cn } from '@/lib/utils';
 import type { BuildWithDetails } from '@/types';
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-/** Maximum number of AI tool badges shown before collapsing into "+N". */
-const MAX_VISIBLE_AI_TOOLS = 3;
 
 // ---------------------------------------------------------------------------
 // Props
