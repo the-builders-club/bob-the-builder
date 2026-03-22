@@ -7,7 +7,10 @@
 
 import type { LucideIcon } from 'lucide-react';
 import { BotIcon, ImageIcon, MicIcon, ZapIcon } from 'lucide-react';
-import type { SimpleIcon } from 'simple-icons';
+
+// Local type alias — avoids importing from the simple-icons barrel (16 MB)
+// and prevents the bundler resolving the full module graph at build time.
+type SimpleIcon = { path: string; title: string };
 import {
   siClaude,
   siCursor,
@@ -43,10 +46,47 @@ type IconDef =
   | { kind: 'emoji'; emoji: string };
 
 // ---------------------------------------------------------------------------
+// Slug types — mirror supabase/seed.sql; update both together.
+// Using a union type provides compile-time typo protection on map keys.
+// ---------------------------------------------------------------------------
+
+type AiToolSlug =
+  | 'claude'
+  | 'gpt-4'
+  | 'cursor'
+  | 'github-copilot'
+  | 'v0'
+  | 'bolt'
+  | 'replit-agent'
+  | 'midjourney'
+  | 'stable-diffusion'
+  | 'whisper'
+  | 'elevenlabs'
+  | 'gemini'
+  | 'lovable';
+
+type TechStackSlug =
+  | 'nextjs'
+  | 'react'
+  | 'python'
+  | 'typescript'
+  | 'javascript'
+  | 'tailwindcss'
+  | 'supabase'
+  | 'nodejs'
+  | 'postgresql'
+  | 'vercel'
+  | 'firebase'
+  | 'swift'
+  | 'flutter'
+  | 'rust'
+  | 'go';
+
+// ---------------------------------------------------------------------------
 // Icon maps (keyed by slug from the database)
 // ---------------------------------------------------------------------------
 
-const AI_TOOL_ICONS: Record<string, IconDef> = {
+const AI_TOOL_ICONS: Record<AiToolSlug, IconDef> = {
   claude: { kind: 'simple', icon: siClaude },
   'gpt-4': { kind: 'emoji', emoji: '🤖' },
   cursor: { kind: 'simple', icon: siCursor },
@@ -62,7 +102,7 @@ const AI_TOOL_ICONS: Record<string, IconDef> = {
   lovable: { kind: 'emoji', emoji: '❤️' },
 };
 
-const TECH_STACK_ICONS: Record<string, IconDef> = {
+const TECH_STACK_ICONS: Record<TechStackSlug, IconDef> = {
   nextjs: { kind: 'simple', icon: siNextdotjs },
   react: { kind: 'simple', icon: siReact },
   python: { kind: 'simple', icon: siPython },
@@ -96,6 +136,7 @@ function ChipIcon({
   if (def.kind === 'emoji') {
     return (
       <span
+        aria-hidden="true"
         className={cn('leading-none', className)}
         style={{ fontSize: size }}
       >
@@ -106,22 +147,34 @@ function ChipIcon({
 
   if (def.kind === 'lucide') {
     const Icon = def.icon;
-    return <Icon className={className} style={{ width: size, height: size }} />;
+    return (
+      <Icon
+        aria-hidden="true"
+        className={className}
+        style={{ width: size, height: size }}
+      />
+    );
   }
 
-  // simple-icons SVG path
-  return (
-    <svg
-      role="img"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      style={{ width: size, height: size, fill: 'currentColor' }}
-      aria-label={def.icon.title}
-    >
-      <path d={def.icon.path} />
-    </svg>
-  );
+  if (def.kind === 'simple') {
+    // Decorative icon — tool name is already visible as adjacent text
+    return (
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+        className={className}
+        style={{ width: size, height: size, fill: 'currentColor' }}
+      >
+        <path d={def.icon.path} />
+      </svg>
+    );
+  }
+
+  // Exhaustive check — TypeScript will error here if a new `kind` is added
+  // to IconDef without a corresponding branch above.
+  const _exhaustive: never = def;
+  return _exhaustive;
 }
 
 // ---------------------------------------------------------------------------
@@ -138,7 +191,7 @@ type AiToolChipProps = {
 };
 
 export function AiToolChip({ name, slug, size = 'md' }: AiToolChipProps) {
-  const iconDef = AI_TOOL_ICONS[slug];
+  const iconDef = AI_TOOL_ICONS[slug as AiToolSlug];
 
   return (
     <span
@@ -174,7 +227,7 @@ type TechStackChipProps = {
 };
 
 export function TechStackChip({ name, slug, size = 'md' }: TechStackChipProps) {
-  const iconDef = TECH_STACK_ICONS[slug];
+  const iconDef = TECH_STACK_ICONS[slug as TechStackSlug];
 
   return (
     <span

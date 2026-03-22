@@ -1,6 +1,11 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // simple-icons ships a 5 MB barrel export (3,400+ icons).
+    // This tells Next.js to tree-shake it during dev builds.
+    optimizePackageImports: ['simple-icons'],
+  },
   turbopack: {
     root: import.meta.dirname,
   },
