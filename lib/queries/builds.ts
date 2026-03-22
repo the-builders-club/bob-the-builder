@@ -46,6 +46,44 @@ const BUILD_WITH_DETAILS_AND_AI_FILTER_SELECT = `
   filter_ai:build_ai_tools!inner(ai_tool_id)
 ` as const;
 
+/**
+ * Select string that includes an additional `!inner` join on `build_tech_stack_tags`
+ * for filtering by tech stack. The alias `filter_tech` restricts parent rows to those
+ * with at least one matching tech stack tag.
+ */
+const BUILD_WITH_DETAILS_AND_TECH_FILTER_SELECT = `
+  *,
+  profile:profiles!builds_user_id_fkey(*),
+  screenshots:build_screenshots(*),
+  ai_tools:build_ai_tools(
+    ...ai_tools(*)
+  ),
+  tech_stack_tags:build_tech_stack_tags(
+    ...tech_stack_tags(*)
+  ),
+  upvotes:upvotes(count),
+  filter_tech:build_tech_stack_tags!inner(tech_stack_tag_id)
+` as const;
+
+/**
+ * Select string that includes `!inner` joins on both `build_ai_tools` and
+ * `build_tech_stack_tags` for filtering by both AI tool and tech stack simultaneously.
+ */
+const BUILD_WITH_DETAILS_AND_BOTH_FILTER_SELECT = `
+  *,
+  profile:profiles!builds_user_id_fkey(*),
+  screenshots:build_screenshots(*),
+  ai_tools:build_ai_tools(
+    ...ai_tools(*)
+  ),
+  tech_stack_tags:build_tech_stack_tags(
+    ...tech_stack_tags(*)
+  ),
+  upvotes:upvotes(count),
+  filter_ai:build_ai_tools!inner(ai_tool_id),
+  filter_tech:build_tech_stack_tags!inner(tech_stack_tag_id)
+` as const;
+
 /** Maximum number of builds returned per page. */
 const BUILDS_PAGE_SIZE = 20;
 
@@ -70,11 +108,43 @@ export async function getBuilds(filters?: FeedFilters) {
     ? filters.buildTypes
     : null;
   const activeAiToolIds = filters?.aiToolIds?.length ? filters.aiToolIds : null;
+  const activeTechStackTagIds = filters?.techStackTagIds?.length
+    ? filters.techStackTagIds
+    : null;
 
-  // When filtering by AI tool we use a separate code path that includes
-  // an `!inner` join alias (`filter_ai`). This keeps both select strings
-  // as compile-time literal types so Supabase's PostgREST type inference
-  // works correctly in each branch.
+  // When filtering by both AI tool and tech stack, use the combined select.
+  if (activeAiToolIds && activeTechStackTagIds) {
+    let query = supabase
+      .from('builds')
+      .select(BUILD_WITH_DETAILS_AND_BOTH_FILTER_SELECT)
+      .in('filter_ai.ai_tool_id', activeAiToolIds)
+      .in('filter_tech.tech_stack_tag_id', activeTechStackTagIds)
+      .order('created_at', { ascending: false })
+      .range(0, BUILDS_PAGE_SIZE - 1);
+
+    if (activeBuildTypes) {
+      query = query.in('build_type', activeBuildTypes);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      return { data: null, error };
+    }
+
+    const builds: BuildWithDetails[] = (data ?? []).map((build) => {
+      const {
+        filter_ai: _filter_ai,
+        filter_tech: _filter_tech,
+        ...rest
+      } = build;
+      return { ...rest, upvote_count: build.upvotes[0]?.count ?? 0 };
+    });
+
+    return { data: builds, error: null };
+  }
+
+  // When filtering by AI tool only.
   if (activeAiToolIds) {
     let query = supabase
       .from('builds')
@@ -101,7 +171,34 @@ export async function getBuilds(filters?: FeedFilters) {
     return { data: builds, error: null };
   }
 
-  // No AI tool filter — use the standard select without the extra join.
+  // When filtering by tech stack only.
+  if (activeTechStackTagIds) {
+    let query = supabase
+      .from('builds')
+      .select(BUILD_WITH_DETAILS_AND_TECH_FILTER_SELECT)
+      .in('filter_tech.tech_stack_tag_id', activeTechStackTagIds)
+      .order('created_at', { ascending: false })
+      .range(0, BUILDS_PAGE_SIZE - 1);
+
+    if (activeBuildTypes) {
+      query = query.in('build_type', activeBuildTypes);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      return { data: null, error };
+    }
+
+    const builds: BuildWithDetails[] = (data ?? []).map((build) => {
+      const { filter_tech: _filter_tech, ...rest } = build;
+      return { ...rest, upvote_count: build.upvotes[0]?.count ?? 0 };
+    });
+
+    return { data: builds, error: null };
+  }
+
+  // No AI tool or tech stack filter — use the standard select without extra joins.
   let query = supabase
     .from('builds')
     .select(BUILD_WITH_DETAILS_SELECT)
