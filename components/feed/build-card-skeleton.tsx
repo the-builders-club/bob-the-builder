@@ -1,9 +1,3 @@
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // ---------------------------------------------------------------------------
@@ -18,40 +12,33 @@ import { Skeleton } from '@/components/ui/skeleton';
  */
 export function BuildCardSkeleton() {
   return (
-    <Card className="h-full overflow-hidden">
-      {/* Thumbnail — matches aspect-video container */}
-      <Skeleton className="aspect-video w-full rounded-none" />
+    <div className="h-full overflow-hidden rounded-xl border border-border">
+      {/* Thumbnail — h-40 matching BuildCard */}
+      <Skeleton className="h-40 w-full rounded-none" />
 
-      {/* Title + Build Type badge */}
-      <CardHeader>
-        <div className="flex items-start justify-between gap-2">
-          <Skeleton className="h-4 w-3/5" />
-          <Skeleton className="h-5 w-16 shrink-0 rounded-full" />
-        </div>
-      </CardHeader>
-
-      {/* Description — two lines */}
-      <CardContent>
-        <div className="space-y-2">
-          <Skeleton className="h-3.5 w-full" />
-          <Skeleton className="h-3.5 w-4/5" />
-        </div>
-
-        {/* AI Tool badges — 3 placeholder badges */}
-        <div className="mt-3 flex flex-wrap gap-1.5">
+      {/* Content */}
+      <div className="p-5">
+        {/* Badge row */}
+        <div className="mb-3 flex items-center gap-1.5">
+          <Skeleton className="h-5 w-16 rounded-full" />
           <Skeleton className="h-5 w-14 rounded-full" />
-          <Skeleton className="h-5 w-18 rounded-full" />
-          <Skeleton className="h-5 w-12 rounded-full" />
         </div>
-      </CardContent>
 
-      {/* Builder avatar + name */}
-      <CardFooter className="mt-auto">
+        {/* Title */}
+        <Skeleton className="mb-2 h-5 w-4/5" />
+
+        {/* Description — two lines */}
+        <div className="mb-4 space-y-2">
+          <Skeleton className="h-3.5 w-full" />
+          <Skeleton className="h-3.5 w-3/5" />
+        </div>
+
+        {/* Avatar + name */}
         <div className="flex items-center gap-2">
           <Skeleton className="size-6 rounded-full" />
           <Skeleton className="h-3.5 w-24" />
         </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -1,19 +1,25 @@
-import { SignOutButton } from '@/components/auth/sign-out-button';
+import { Footer } from '@/components/layout/footer';
+import { Navbar } from '@/components/layout/navbar';
+import { getUser } from '@/lib/auth';
+import { getProfileById } from '@/lib/queries/profiles';
 
-export default function MainLayout({
+export default async function MainLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getUser();
+  const profile = user
+    ? await getProfileById(user.id)
+        .then((r) => r.data)
+        .catch(() => null)
+    : null;
+
   return (
-    <div className="min-h-screen">
-      <header className="border-b">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-          <span className="text-lg font-semibold">Bob the Builder</span>
-          <SignOutButton />
-        </div>
-      </header>
-      <main>{children}</main>
+    <div className="grid min-h-screen grid-rows-[auto_1fr_auto]">
+      <Navbar user={user} profile={profile} />
+      <main className="pb-16">{children}</main>
+      <Footer />
     </div>
   );
 }

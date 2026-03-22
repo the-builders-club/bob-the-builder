@@ -6,3 +6,10 @@
 4. Sakshi Gupta
 5. Praful Jain
 6. Priya Makwana
+7. Mayuresh Bhosale
+8. Ritika Shakkerwal
+9. Tanvi Sharma
+10. Vaishnavi Arora
+11. Vivekita Banyal
+
+Thanks to all designer -> builders for contributing to this repo

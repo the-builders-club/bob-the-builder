@@ -1,0 +1,75 @@
+name: Enforce Assignment Policy
+
+on:
+  issues:
+    types: [assigned]
+
+# Prevent duplicate runs on the same issue from racing each other
+concurrency:
+  group: enforce-assign-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  enforce:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const sender = context.payload.sender.login;
+            const assignee = context.payload.assignee.login;
+            const issueNumber = context.issue.number;
+
+            // Check the role of whoever performed the assignment.
+            // Fail closed: if the API call fails for any reason (404 for non-collaborators,
+            // network error, permissions issue), treat as unauthorized and remove the assignment.
+            let roleName = 'none';
+            try {
+              const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: sender,
+              });
+              // role_name returns the actual role: 'admin', 'maintain', 'write', 'triage', 'read'
+              // (unlike the legacy 'permission' field which collapses maintain→write, triage→read)
+              roleName = data.role_name;
+            } catch {
+              // Not a collaborator or API error — default roleName stays 'none'
+            }
+
+            const isAuthorized = ['admin', 'maintain'].includes(roleName);
+
+            if (isAuthorized) {
+              // Authorized assignment — clean up the request label if still present
+              const hasRequestLabel = context.payload.issue.labels.some(
+                l => l.name === 'assignment-requested'
+              );
+              if (hasRequestLabel) {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  name: 'assignment-requested',
+                });
+              }
+              return;
+            }
+
+            // Not authorized — remove the assignment
+            await github.rest.issues.removeAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              assignees: [assignee],
+            });
+
+            // Explain what happened and direct them to the correct process
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `@${sender} Only instructors can assign issues directly.\n\nTo request this issue, comment:\n\`\`\`\n/request-assign\n\`\`\`\nAn instructor will assign it to you.`,
+            });

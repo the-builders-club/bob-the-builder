@@ -1,8 +1,6 @@
-import Link from 'next/link';
-
 import { AuthErrorAlert } from '@/components/auth/auth-error-alert';
 import { OAuthButtons } from '@/components/auth/oauth-buttons';
-import { Routes } from '@/lib/constants/routes';
+import { HardhatIcon } from '@/components/ui/icons';
 
 export default async function LoginPage({
   searchParams,
@@ -12,27 +10,29 @@ export default async function LoginPage({
   const { error } = await searchParams;
 
   return (
-    <div className="flex w-full max-w-sm flex-col gap-6">
-      <div className="flex flex-col gap-2 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
-        <p className="text-sm text-muted-foreground">
-          Sign in to your account to continue
-        </p>
+    <div className="w-full max-w-md">
+      <div className="rounded-2xl border border-border bg-card p-8">
+        {/* Logo + heading */}
+        <div className="mb-8 text-center">
+          <div className="mb-4 inline-flex size-14 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <HardhatIcon size={28} />
+          </div>
+          <h1 className="mb-1 font-display text-2xl text-foreground">
+            Welcome to Bob the Builder
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Sign in or create an account to start building
+          </p>
+        </div>
+
+        {error && (
+          <div className="mb-6">
+            <AuthErrorAlert message={error} />
+          </div>
+        )}
+
+        <OAuthButtons />
       </div>
-
-      {error && <AuthErrorAlert message={error} />}
-
-      <OAuthButtons />
-
-      <p className="text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{' '}
-        <Link
-          href={Routes.SIGNUP}
-          className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80"
-        >
-          Sign up
-        </Link>
-      </p>
     </div>
   );
 }

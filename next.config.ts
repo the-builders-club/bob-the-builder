@@ -4,6 +4,15 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: import.meta.dirname,
   },
+  async redirects() {
+    return [
+      {
+        source: '/signup',
+        destination: '/login',
+        permanent: true,
+      },
+    ];
+  },
   images: {
     // Required for local Supabase Docker (localhost resolves to a private IP).
     // Only enabled in development — never expose in production.
@@ -21,6 +30,16 @@ const nextConfig: NextConfig = {
         hostname: 'localhost',
         port: '54321',
         pathname: '/storage/v1/object/public/**',
+      },
+      // GitHub OAuth avatars
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+      },
+      // Google OAuth avatars
+      {
+        protocol: 'https',
+        hostname: '**.googleusercontent.com',
       },
     ],
   },

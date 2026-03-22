@@ -88,11 +88,30 @@ npm run db:stop
 
 ---
 
+## Issue Assignment Policy
+
+**Do not assign issues to yourself.** Only admins (instructors) can assign issues.
+
+To request an issue:
+
+1. Find the issue you want to work on
+2. Leave a comment with exactly: `/request-assign`
+3. An instructor will assign it to you — do not start work until then
+
+A bot will automatically remove any unauthorized self-assignments and remind you of this process.
+
+---
+
 ## Branch Strategy
 
-- Create a feature branch for your work: `your-name/issue-{number}-{short-description}`
-- Open a PR against `main`
-- No separate `dev` branch — keep it simple
+```
+feature/* ──> dev ──> main
+```
+
+- Always branch off `dev` (not `main`)
+- Name your branch: `your-name/issue-{number}-{short-description}`
+  - Example: `prasad/issue-42-add-profile-page`
+- Open PRs against `dev` (never directly to `main`)
 
 ---
 
