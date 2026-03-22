@@ -7,7 +7,10 @@
 
 import type { LucideIcon } from 'lucide-react';
 import { BotIcon, ImageIcon, MicIcon, ZapIcon } from 'lucide-react';
-import type { SimpleIcon } from 'simple-icons';
+
+// Local type alias — avoids importing from the simple-icons barrel (16 MB)
+// and prevents the bundler resolving the full module graph at build time.
+type SimpleIcon = { path: string; title: string };
 import {
   siClaude,
   siCursor,
