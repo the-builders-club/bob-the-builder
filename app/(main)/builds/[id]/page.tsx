@@ -7,7 +7,6 @@ import { ScreenshotGallery } from '@/components/builds/screenshot-gallery';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { UpvoteIcon } from '@/components/ui/icons';
-import { AiToolChip, TechStackChip } from '@/components/ui/tool-chip';
 import { getUser } from '@/lib/auth';
 import {
   BUILD_TYPE_BADGE_CLASSES,
@@ -180,7 +179,13 @@ export default async function BuildDetailPage({
               </h4>
               <div className="flex flex-wrap gap-2">
                 {build.ai_tools.map((tool) => (
-                  <AiToolChip key={tool.id} name={tool.name} slug={tool.slug} />
+                  <span
+                    key={tool.id}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted px-3 py-1.5 text-sm font-medium text-foreground"
+                  >
+                    <span className="size-2 rounded-full bg-amber-500" />
+                    {tool.name}
+                  </span>
                 ))}
               </div>
             </div>
@@ -194,7 +199,12 @@ export default async function BuildDetailPage({
               </h4>
               <div className="flex flex-wrap gap-2">
                 {build.tech_stack_tags.map((tag) => (
-                  <TechStackChip key={tag.id} name={tag.name} slug={tag.slug} />
+                  <span
+                    key={tag.id}
+                    className="rounded border border-border bg-muted px-2.5 py-1 font-mono text-xs text-muted-foreground"
+                  >
+                    {tag.name}
+                  </span>
                 ))}
               </div>
             </div>
