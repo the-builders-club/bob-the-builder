@@ -1,0 +1,89 @@
+name: Request Assignment
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  handle-request:
+    runs-on: ubuntu-latest
+    # Only run on issue comments, not PR comments
+    if: github.event.issue.pull_request == null
+    permissions:
+      issues: write
+
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = context.payload.comment.body.trim();
+            const sender = context.payload.comment.user.login;
+            const issueNumber = context.issue.number;
+            const issue = context.payload.issue;
+
+            // Only respond to exact /request-assign command
+            if (!/^\/request-assign\s*$/.test(comment)) return;
+
+            // Don't respond to bots — also prevents re-triggering on this workflow's own comments
+            if (context.payload.comment.user.type === 'Bot') return;
+
+            // Ignore closed issues
+            if (issue.state !== 'open') return;
+
+            // If already assigned, let the requester know
+            if (issue.assignees.length > 0) {
+              const assignees = issue.assignees.map(a => `@${a.login}`).join(', ');
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `@${sender} This issue is already assigned to ${assignees}.`,
+              });
+              return;
+            }
+
+            // If already requested, avoid duplicate pings
+            const alreadyLabeled = issue.labels.some(l => l.name === 'assignment-requested');
+            if (alreadyLabeled) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `@${sender} Assignment has already been requested for this issue. Please wait for an instructor to respond.`,
+              });
+              return;
+            }
+
+            // Ensure the label exists (create it if not — only fails on 404)
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'assignment-requested',
+              });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'assignment-requested',
+                color: 'e4e669',
+                description: 'Someone has requested to be assigned to this issue',
+              });
+            }
+
+            // Add the label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              labels: ['assignment-requested'],
+            });
+
+            // Notify admins — update this list if instructors change
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `@${sender} has requested assignment to this issue.\n\n/cc @aishvaryagupta @INNOVATIVEGAMER`,
+            });
