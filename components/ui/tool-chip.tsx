@@ -117,7 +117,7 @@ function ChipIcon({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       style={{ width: size, height: size, fill: 'currentColor' }}
-      aria-label={def.icon.title}
+      aria-hidden="true"
     >
       <path d={def.icon.path} />
     </svg>
@@ -144,6 +144,7 @@ export function AiToolChip({ name, slug, size = 'md' }: AiToolChipProps) {
     <span
       className={cn(
         'inline-flex items-center gap-1.5 rounded-lg border font-medium',
+        // dark:text-amber-400 — intentional override; no semantic token exists yet for this amber shade
         'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400',
         size === 'sm' ? 'px-2 py-0.5 font-mono text-xs' : 'px-3 py-1.5 text-sm'
       )}
