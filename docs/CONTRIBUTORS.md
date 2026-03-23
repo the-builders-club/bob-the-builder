@@ -11,5 +11,6 @@
 9. Tanvi Sharma
 10. Vaishnavi Arora
 11. Vivekita Banyal
+12. Anumeha Jain
 
 Thanks to all designer -> builders for contributing to this repo
