@@ -57,6 +57,8 @@ export interface FeedFilters {
   buildTypes?: BuildType[];
   /** Restrict results to builds that use at least one of these AI tools. */
   aiToolIds?: string[];
+  /** Restrict results to builds that use at least one of these tech stack tags. */
+  techStackTagIds?: string[];
 }
 
 // ---------------------------------------------------------------------------

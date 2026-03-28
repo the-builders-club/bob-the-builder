@@ -7,9 +7,11 @@ import {
   AI_TOOL_PARAM,
   BUILD_TYPE_LABELS,
   BUILD_TYPE_PARAM,
+  TECH_STACK_PARAM,
 } from '@/lib/constants/builds';
 import { getAiTools } from '@/lib/queries/ai-tools';
 import { getBuilds } from '@/lib/queries/builds';
+import { getTechStackTags } from '@/lib/queries/tech-stack-tags';
 import type { BuildType, FeedFilters as FeedFiltersType } from '@/types';
 
 // ---------------------------------------------------------------------------
@@ -41,11 +43,10 @@ function parseBuildTypes(raw: string | undefined): BuildType[] {
 }
 
 /**
- * Parses a comma-separated `aiTool` param into an array of IDs.
- * Returns the raw split — server-side validation happens in the query
- * (non-matching IDs simply return no results).
+ * Parses a comma-separated ID param into an array of strings.
+ * Returns the raw split — server-side validation happens in the query.
  */
-function parseAiToolIds(raw: string | undefined): string[] {
+function parseIds(raw: string | undefined): string[] {
   if (!raw) {
     return [];
   }
@@ -67,7 +68,8 @@ function parseAiToolIds(raw: string | undefined): string[] {
 async function Feed({ filters }: { filters?: FeedFiltersType }) {
   const hasActiveFilters =
     (filters?.buildTypes?.length ?? 0) > 0 ||
-    (filters?.aiToolIds?.length ?? 0) > 0;
+    (filters?.aiToolIds?.length ?? 0) > 0 ||
+    (filters?.techStackTagIds?.length ?? 0) > 0;
 
   const { data: builds, error } = await getBuilds(filters);
 
@@ -125,24 +127,36 @@ export default async function HomePage({
     typeof resolvedParams[AI_TOOL_PARAM] === 'string'
       ? resolvedParams[AI_TOOL_PARAM]
       : undefined;
+  const rawTechStack =
+    typeof resolvedParams[TECH_STACK_PARAM] === 'string'
+      ? resolvedParams[TECH_STACK_PARAM]
+      : undefined;
 
   const buildTypes = parseBuildTypes(rawBuildType);
-  const aiToolIds = parseAiToolIds(rawAiTool);
+  const aiToolIds = parseIds(rawAiTool);
+  const techStackTagIds = parseIds(rawTechStack);
 
   // Build the filters object. Only include non-empty arrays.
   const filters: FeedFiltersType | undefined =
-    buildTypes.length > 0 || aiToolIds.length > 0
+    buildTypes.length > 0 || aiToolIds.length > 0 || techStackTagIds.length > 0
       ? {
           ...(buildTypes.length > 0 && { buildTypes }),
           ...(aiToolIds.length > 0 && { aiToolIds }),
+          ...(techStackTagIds.length > 0 && { techStackTagIds }),
         }
       : undefined;
 
-  // Fetch AI tools for the filter controls (server-side).
-  const { data: aiTools, error: aiToolsError } = await getAiTools();
+  // Fetch AI tools and tech stack tags for the filter controls (server-side).
+  const [
+    { data: aiTools, error: aiToolsError },
+    { data: techStackTags, error: techStackTagsError },
+  ] = await Promise.all([getAiTools(), getTechStackTags()]);
 
   if (aiToolsError) {
     throw aiToolsError;
+  }
+  if (techStackTagsError) {
+    throw techStackTagsError;
   }
 
   // Serialize search params into a stable key so changing filters
@@ -150,6 +164,7 @@ export default async function HomePage({
   const suspenseKey = [
     [...buildTypes].sort().join(','),
     [...aiToolIds].sort().join(','),
+    [...techStackTagIds].sort().join(','),
   ].join('|');
 
   return (
@@ -173,7 +188,10 @@ export default async function HomePage({
 
       {/* FeedFilters uses useSearchParams() so it needs its own Suspense boundary */}
       <Suspense fallback={null}>
-        <FeedFilters aiTools={aiTools ?? []} />
+        <FeedFilters
+          aiTools={aiTools ?? []}
+          techStackTags={techStackTags ?? []}
+        />
       </Suspense>
 
       <div className="mt-6">
