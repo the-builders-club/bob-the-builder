@@ -1,12 +1,12 @@
 import './globals.css';
 
 import type { Metadata } from 'next';
-import { DM_Serif_Display, Geist, Geist_Mono } from 'next/font/google';
+import { Geist_Mono, Montserrat, Plus_Jakarta_Sans } from 'next/font/google';
 
 import { Toaster } from '@/components/ui/sonner';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const montserrat = Montserrat({
+  variable: '--font-montserrat',
   subsets: ['latin'],
 });
 
@@ -15,10 +15,12 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-const dmSerifDisplay = DM_Serif_Display({
-  variable: '--font-dm-serif-display',
+// Plus Jakarta Sans is a variable font (weight axis 200–800).
+// Omitting `weight` downloads the single variable font file instead of
+// three separate static files, which is smaller and more flexible.
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: '--font-plus-jakarta-sans',
   subsets: ['latin'],
-  weight: '400',
 });
 
 export const metadata: Metadata = {
@@ -34,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${dmSerifDisplay.variable} antialiased`}
+        className={`${montserrat.variable} ${geistMono.variable} ${plusJakartaSans.variable} antialiased`}
       >
         {children}
         <Toaster />
