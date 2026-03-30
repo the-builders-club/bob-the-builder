@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { CheckerboardPlaceholder } from '@/components/ui/checkerboard-placeholder';
+import { UpvoteIcon } from '@/components/ui/icons';
 import {
   BUILD_TYPE_BADGE_CLASSES,
   BUILD_TYPE_LABELS,
@@ -100,7 +101,7 @@ export function BuildCard({ build }: BuildCardProps) {
             {build.description}
           </p>
 
-          {/* Footer: avatar + name */}
+          {/* Footer: avatar + name + upvotes */}
           <div className="flex items-center justify-between">
             {profile ? (
               <div className="flex items-center gap-2">
@@ -122,6 +123,10 @@ export function BuildCard({ build }: BuildCardProps) {
             ) : (
               <span className="text-xs text-muted-foreground">Anonymous</span>
             )}
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <UpvoteIcon size={12} />
+              <span className="text-xs tabular-nums">{build.upvote_count}</span>
+            </div>
           </div>
         </div>
       </article>

@@ -4,9 +4,9 @@ import { notFound } from 'next/navigation';
 
 import { BuildOwnerActions } from '@/components/builds/build-owner-actions';
 import { ScreenshotGallery } from '@/components/builds/screenshot-gallery';
+import { UpvoteButton } from '@/components/builds/upvote-button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { UpvoteIcon } from '@/components/ui/icons';
 import { getUser } from '@/lib/auth';
 import {
   BUILD_TYPE_BADGE_CLASSES,
@@ -14,6 +14,7 @@ import {
 } from '@/lib/constants/builds';
 import { profileRoute, Routes } from '@/lib/constants/routes';
 import { getBuildById } from '@/lib/queries/builds';
+import { hasUserUpvoted } from '@/lib/queries/upvotes';
 import { cn, isUuid } from '@/lib/utils';
 
 type BuildDetailPageProps = {
@@ -39,6 +40,9 @@ export default async function BuildDetailPage({
   }
 
   const isOwner = user?.id === build.user_id;
+  const { data: userHasUpvoted } = user
+    ? await hasUserUpvoted(id, user.id)
+    : { data: false };
   const profile = build.profile;
 
   const sortedScreenshots = [...build.screenshots].sort(
@@ -127,50 +131,41 @@ export default async function BuildDetailPage({
             </div>
           )}
 
-          {/* Links */}
-          {(build.live_url || build.repo_url) && (
-            <div className="mb-8 flex flex-wrap gap-3">
-              {build.repo_url && (
-                <a
-                  href={build.repo_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/80"
-                >
-                  <ExternalLinkIcon className="size-4" />
-                  View Repo
-                </a>
-              )}
-              {build.live_url && (
-                <a
-                  href={build.live_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-zinc-300 hover:bg-muted"
-                >
-                  <ExternalLinkIcon className="size-4" />
-                  Live Demo
-                </a>
-              )}
-            </div>
-          )}
+          {/* Links + Upvote */}
+          <div className="mb-8 flex flex-wrap items-center gap-3">
+            {build.repo_url && (
+              <a
+                href={build.repo_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/80"
+              >
+                <ExternalLinkIcon className="size-4" />
+                View Repo
+              </a>
+            )}
+            {build.live_url && (
+              <a
+                href={build.live_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-zinc-300 hover:bg-muted"
+              >
+                <ExternalLinkIcon className="size-4" />
+                Live Demo
+              </a>
+            )}
+            <UpvoteButton
+              buildId={build.id}
+              initialCount={build.upvote_count}
+              initialUpvoted={userHasUpvoted}
+              isAuthenticated={!!user}
+            />
+          </div>
         </div>
 
         {/* -- Sidebar -- */}
         <div className="flex flex-col gap-4 lg:col-span-1">
-          {/* Upvote Widget */}
-          <div className="rounded-xl border border-border bg-card p-6 text-center">
-            <div className="flex flex-col items-center gap-2">
-              <div className="flex size-14 items-center justify-center rounded-xl border-2 border-amber-600 bg-amber-50">
-                <UpvoteIcon size={24} className="text-amber-600" />
-              </div>
-              <span className="font-display text-2xl text-foreground">
-                {build.upvote_count}
-              </span>
-              <span className="text-xs text-muted-foreground">upvotes</span>
-            </div>
-          </div>
-
           {/* AI Tools card */}
           {build.ai_tools.length > 0 && (
             <div className="rounded-xl border border-border bg-card p-6">
