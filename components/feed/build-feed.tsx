@@ -66,15 +66,17 @@ export function BuildFeed({
         ))}
       </div>
 
-      {pagination && (
+      {pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-border pt-6">
-          <Button asChild variant="outline" disabled={!pagination.prevHref}>
-            {pagination.prevHref ? (
+          {pagination.prevHref ? (
+            <Button asChild variant="outline">
               <Link href={pagination.prevHref}>← Previous</Link>
-            ) : (
-              <span>← Previous</span>
-            )}
-          </Button>
+            </Button>
+          ) : (
+            <Button variant="outline" disabled>
+              ← Previous
+            </Button>
+          )}
 
           <p className="text-sm text-muted-foreground">
             Page {pagination.currentPage} of {pagination.totalPages}
@@ -83,13 +85,15 @@ export function BuildFeed({
             {pagination.totalCount !== 1 ? 's' : ''}
           </p>
 
-          <Button asChild variant="outline" disabled={!pagination.nextHref}>
-            {pagination.nextHref ? (
+          {pagination.nextHref ? (
+            <Button asChild variant="outline">
               <Link href={pagination.nextHref}>Next →</Link>
-            ) : (
-              <span>Next →</span>
-            )}
-          </Button>
+            </Button>
+          ) : (
+            <Button variant="outline" disabled>
+              Next →
+            </Button>
+          )}
         </div>
       )}
     </div>

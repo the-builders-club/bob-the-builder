@@ -85,6 +85,8 @@ export function FeedFilters({ aiTools }: FeedFiltersProps) {
 
   const updateUrl = useCallback(
     (buildTypes: BuildType[], aiToolIds: string[]) => {
+      // Build params from scratch — intentionally omits PAGE_PARAM so
+      // the page resets to 1 whenever filters change.
       const params = new URLSearchParams();
 
       if (buildTypes.length > 0) {

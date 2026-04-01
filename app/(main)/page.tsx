@@ -7,6 +7,7 @@ import {
   AI_TOOL_PARAM,
   BUILD_TYPE_LABELS,
   BUILD_TYPE_PARAM,
+  BUILDS_PAGE_SIZE,
   PAGE_PARAM,
 } from '@/lib/constants/builds';
 import { getAiTools } from '@/lib/queries/ai-tools';
@@ -19,9 +20,6 @@ import type { BuildType, FeedFilters as FeedFiltersType } from '@/types';
 
 /** Number of skeleton cards shown while the feed is loading. */
 const SKELETON_COUNT = 6;
-
-/** Maximum number of builds returned per page. */
-const BUILDS_PAGE_SIZE = 20;
 
 /** Set of valid build type values for validation. */
 const VALID_BUILD_TYPES = new Set<string>(Object.keys(BUILD_TYPE_LABELS));
