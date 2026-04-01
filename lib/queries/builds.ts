@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { BUILDS_PAGE_SIZE } from '@/lib/constants/builds';
 import { createClient } from '@/lib/supabase/server';
 import type {
   BuildType,
@@ -46,9 +47,6 @@ const BUILD_WITH_DETAILS_AND_AI_FILTER_SELECT = `
   filter_ai:build_ai_tools!inner(ai_tool_id)
 ` as const;
 
-/** Maximum number of builds returned per page. */
-const BUILDS_PAGE_SIZE = 20;
-
 /**
  * Fetches a page of builds for the feed, including the author profile,
  * screenshots, AI tools (via junction table), tech stack tags
@@ -71,26 +69,32 @@ export async function getBuilds(filters?: FeedFilters) {
     : null;
   const activeAiToolIds = filters?.aiToolIds?.length ? filters.aiToolIds : null;
 
+  const page = Math.max(1, filters?.page ?? 1);
+  const from = (page - 1) * BUILDS_PAGE_SIZE;
+  const to = from + BUILDS_PAGE_SIZE - 1;
+
   // When filtering by AI tool we use a separate code path that includes
   // an `!inner` join alias (`filter_ai`). This keeps both select strings
   // as compile-time literal types so Supabase's PostgREST type inference
   // works correctly in each branch.
   if (activeAiToolIds) {
+    // `exact` count is intentional — accurate pagination matters more than performance at current scale.
+    // Revisit if builds table grows past ~100k rows.
     let query = supabase
       .from('builds')
-      .select(BUILD_WITH_DETAILS_AND_AI_FILTER_SELECT)
+      .select(BUILD_WITH_DETAILS_AND_AI_FILTER_SELECT, { count: 'exact' })
       .in('filter_ai.ai_tool_id', activeAiToolIds)
       .order('created_at', { ascending: false })
-      .range(0, BUILDS_PAGE_SIZE - 1);
+      .range(from, to);
 
     if (activeBuildTypes) {
       query = query.in('build_type', activeBuildTypes);
     }
 
-    const { data, error } = await query;
+    const { data, count, error } = await query;
 
     if (error) {
-      return { data: null, error };
+      return { data: null, count: null, error };
     }
 
     const builds: BuildWithDetails[] = (data ?? []).map((build) => {
@@ -98,24 +102,26 @@ export async function getBuilds(filters?: FeedFilters) {
       return { ...rest, upvote_count: build.upvotes[0]?.count ?? 0 };
     });
 
-    return { data: builds, error: null };
+    return { data: builds, count, error: null };
   }
 
   // No AI tool filter — use the standard select without the extra join.
+  // `exact` count is intentional — accurate pagination matters more than performance at current scale.
+  // Revisit if builds table grows past ~100k rows.
   let query = supabase
     .from('builds')
-    .select(BUILD_WITH_DETAILS_SELECT)
+    .select(BUILD_WITH_DETAILS_SELECT, { count: 'exact' })
     .order('created_at', { ascending: false })
-    .range(0, BUILDS_PAGE_SIZE - 1);
+    .range(from, to);
 
   if (activeBuildTypes) {
     query = query.in('build_type', activeBuildTypes);
   }
 
-  const { data, error } = await query;
+  const { data, count, error } = await query;
 
   if (error) {
-    return { data: null, error };
+    return { data: null, count: null, error };
   }
 
   const builds: BuildWithDetails[] = (data ?? []).map((build) => {
@@ -123,7 +129,7 @@ export async function getBuilds(filters?: FeedFilters) {
     return { ...rest, upvote_count: upvotes[0]?.count ?? 0 };
   });
 
-  return { data: builds, error: null };
+  return { data: builds, count, error: null };
 }
 
 /**

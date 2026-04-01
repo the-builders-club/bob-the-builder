@@ -10,28 +10,29 @@ import { BuildCard } from './build-card';
 // Props
 // ---------------------------------------------------------------------------
 
+type Pagination = {
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  prevHref: string | null;
+  nextHref: string | null;
+};
+
 type BuildFeedProps = {
   builds: BuildWithDetails[];
   /** Whether the feed is being filtered. Affects the empty state message. */
   hasActiveFilters?: boolean;
+  pagination?: Pagination;
 };
 
 // ---------------------------------------------------------------------------
 // BuildFeed
 // ---------------------------------------------------------------------------
 
-/**
- * Renders a responsive grid of build cards, or an empty state when
- * there are no builds to display.
- *
- * Grid layout: 1 column on mobile, 2 columns at `sm`, 3 columns at `lg`.
- *
- * When `hasActiveFilters` is true and there are no results, it shows a
- * "No builds match your filters" message with a link to clear filters.
- */
 export function BuildFeed({
   builds,
   hasActiveFilters = false,
+  pagination,
 }: BuildFeedProps) {
   if (builds.length === 0) {
     if (hasActiveFilters) {
@@ -58,10 +59,43 @@ export function BuildFeed({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {builds.map((build) => (
-        <BuildCard key={build.id} build={build} />
-      ))}
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {builds.map((build) => (
+          <BuildCard key={build.id} build={build} />
+        ))}
+      </div>
+
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-border pt-6">
+          {pagination.prevHref ? (
+            <Button asChild variant="outline">
+              <Link href={pagination.prevHref}>← Previous</Link>
+            </Button>
+          ) : (
+            <Button variant="outline" disabled>
+              ← Previous
+            </Button>
+          )}
+
+          <p className="text-sm text-muted-foreground">
+            Page {pagination.currentPage} of {pagination.totalPages}
+            <span className="mx-2 text-border">·</span>
+            {pagination.totalCount} build
+            {pagination.totalCount !== 1 ? 's' : ''}
+          </p>
+
+          {pagination.nextHref ? (
+            <Button asChild variant="outline">
+              <Link href={pagination.nextHref}>Next →</Link>
+            </Button>
+          ) : (
+            <Button variant="outline" disabled>
+              Next →
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
