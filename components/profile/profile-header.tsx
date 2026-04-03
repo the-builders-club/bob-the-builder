@@ -2,8 +2,12 @@ import { Github, Globe, Linkedin, PencilIcon } from 'lucide-react';
 import Link from 'next/link';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { XTwitterIcon } from '@/components/ui/icons';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Routes } from '@/lib/constants/routes';
 import { cn } from '@/lib/utils';
 import type { Profile } from '@/types';
@@ -53,96 +57,92 @@ export function ProfileHeader({
   const displayName = profile.display_name ?? 'Anonymous';
 
   return (
-    <div>
-      {/* Card wrapper */}
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        {/* Cover gradient */}
-        <div className="h-32 bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-900" />
+    <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      {/* Cover gradient */}
+      <div className="h-32 bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-900" />
 
-        {/* Content area below cover */}
-        <div className="px-6 pb-6">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-end">
-            {/* Left: Avatar + info */}
-            <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-end">
-              {/* Avatar — overlaps cover with ring */}
-              <Avatar
-                className={cn(
-                  'size-24 -mt-12 shrink-0 rounded-2xl ring-4 ring-background shadow-lg'
-                )}
-              >
-                {profile.avatar_url && (
-                  <AvatarImage src={profile.avatar_url} alt={displayName} />
-                )}
-                <AvatarFallback className="rounded-2xl text-2xl">
-                  {displayName.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+      {/* Content area — left-aligned */}
+      <div className="px-6 pb-6">
+        {/* Top row: Avatar left, Stats right */}
+        <div className="flex items-start justify-between">
+          {/* Avatar with edit overlay */}
+          <div className="relative -mt-12 w-fit">
+            <Avatar
+              className={cn(
+                'size-24 shrink-0 rounded-2xl ring-4 ring-background shadow-lg'
+              )}
+            >
+              {profile.avatar_url && (
+                <AvatarImage src={profile.avatar_url} alt={displayName} />
+              )}
+              <AvatarFallback className="rounded-2xl text-2xl">
+                {displayName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
 
-              {/* Name, bio, and social links */}
-              <div className="min-w-0 pb-1">
-                <h1 className="font-display text-2xl text-foreground">
-                  {displayName}
-                </h1>
+            {isOwner && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href={Routes.PROFILE_SETTINGS}
+                    className="absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-lg border border-border bg-muted shadow-lg transition-all hover:scale-110 hover:bg-accent"
+                  >
+                    <PencilIcon className="size-3.5 text-foreground" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>Edit Profile</TooltipContent>
+              </Tooltip>
+            )}
+          </div>
 
-                {profile.bio && (
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {profile.bio}
-                  </p>
-                )}
-
-                {/* Social links — inline with text labels */}
-                <div className="mt-3">
-                  <SocialLinks profile={profile} />
-                </div>
-
-                <p className="mt-2 font-mono text-xs text-muted-foreground">
-                  Joined{' '}
-                  {new Date(profile.created_at).toLocaleDateString('en-US', {
-                    month: 'long',
-                    year: 'numeric',
-                  })}
-                </p>
+          {/* Stats */}
+          <div className="mt-3 flex items-center gap-6">
+            <div className="text-center">
+              <div className="font-display text-2xl text-foreground">
+                {buildsCount}
+              </div>
+              <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                Builds
               </div>
             </div>
 
-            {/* Right: Stats */}
-            <div className="flex shrink-0 items-center gap-6 pb-1">
-              <div className="text-center">
-                <div className="font-display text-2xl text-foreground">
-                  {buildsCount}
-                </div>
-                <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                  Builds
-                </div>
+            <div className="h-10 w-px bg-border" />
+
+            <div className="text-center">
+              <div className="font-display text-2xl text-foreground">
+                {totalUpvotes}
               </div>
-
-              {/* Divider */}
-              <div className="h-10 w-px bg-border" />
-
-              <div className="text-center">
-                <div className="font-display text-2xl text-foreground">
-                  {totalUpvotes}
-                </div>
-                <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                  Upvotes
-                </div>
+              <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                Upvotes
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Edit Profile — below card, only shown to profile owner */}
-      {isOwner && (
-        <div className="mt-4">
-          <Button variant="outline" size="sm" asChild>
-            <Link href={Routes.PROFILE_SETTINGS}>
-              <PencilIcon />
-              Edit Profile
-            </Link>
-          </Button>
+        {/* Name */}
+        <h1 className="mt-4 font-display text-2xl text-foreground">
+          {displayName}
+        </h1>
+
+        {/* Bio */}
+        {profile.bio && (
+          <p className="mt-1 text-sm text-muted-foreground">{profile.bio}</p>
+        )}
+
+        {/* Joined date */}
+        <p className="mt-2 font-mono text-xs text-muted-foreground">
+          Joined{' '}
+          {new Date(profile.created_at).toLocaleDateString('en-US', {
+            month: 'long',
+            year: 'numeric',
+          })}
+        </p>
+
+        {/* Social links */}
+        <div className="mt-3">
+          <SocialLinks profile={profile} />
         </div>
-      )}
+      </div>
     </div>
   );
 }
