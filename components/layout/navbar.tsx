@@ -8,6 +8,7 @@ import { Routes } from '@/lib/constants/routes';
 import type { Profile } from '@/types';
 
 import { NavLink } from './nav-link';
+import { ThemeToggle } from './theme-toggle';
 import { UserMenu } from './user-menu';
 
 interface NavbarProps {
@@ -48,6 +49,8 @@ export function Navbar({ user, profile }: NavbarProps) {
               Submit Build
             </Link>
           </Button>
+
+          <ThemeToggle />
 
           {user ? (
             <UserMenu profile={profile} />
