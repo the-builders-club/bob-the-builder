@@ -9,7 +9,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Routes } from '@/lib/constants/routes';
-import { cn } from '@/lib/utils';
 import type { Profile } from '@/types';
 
 // ---------------------------------------------------------------------------
@@ -64,14 +63,10 @@ export function ProfileHeader({
       {/* Content area — left-aligned */}
       <div className="px-6 pb-6">
         {/* Top row: Avatar left, Stats right */}
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           {/* Avatar with edit overlay */}
           <div className="relative -mt-12 w-fit">
-            <Avatar
-              className={cn(
-                'size-24 shrink-0 rounded-2xl ring-4 ring-background shadow-lg'
-              )}
-            >
+            <Avatar className="size-24 rounded-2xl ring-4 ring-background shadow-lg">
               {profile.avatar_url && (
                 <AvatarImage src={profile.avatar_url} alt={displayName} />
               )}
@@ -85,9 +80,10 @@ export function ProfileHeader({
                 <TooltipTrigger asChild>
                   <Link
                     href={Routes.PROFILE_SETTINGS}
+                    aria-label="Edit profile"
                     className="absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-lg border border-border bg-muted shadow-lg transition-all hover:scale-110 hover:bg-accent"
                   >
-                    <PencilIcon className="size-3.5 text-foreground" />
+                    <PencilIcon aria-hidden className="size-3.5" />
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent>Edit Profile</TooltipContent>
