@@ -32,3 +32,6 @@ export const BUILD_TYPE_PARAM = 'buildType';
 
 /** URL search param key for AI tool filters. */
 export const AI_TOOL_PARAM = 'aiTool';
+
+/** Maximum number of AI tool chips shown before collapsing into "+N". */
+export const MAX_VISIBLE_AI_TOOLS = 3;
